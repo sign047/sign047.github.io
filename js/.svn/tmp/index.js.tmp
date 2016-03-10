@@ -1,0 +1,534 @@
+
+//弹性运动
+(function($,window){
+    var left=0;
+    var iSpeed=0;
+    var timer=null;
+    $.fn.emove=function(iTarget){
+        this.each(function(){
+            var obj=$(this);
+            clearInterval(timer);
+            timer=setInterval(function(){
+                iSpeed+=(iTarget-left)/6;
+                iSpeed*=0.7;
+                left+=iSpeed;
+                obj.css('left',Math.round(left));
+                //取整 保证正好达到目标值
+                if(Math.round(iSpeed)==0 && Math.round(left)==iTarget){
+                    clearInterval(timer);
+                }
+            },30);
+        })
+    }
+})(jQuery,window);
+$.fn.play=function(){
+    this.each(function(){
+        var obj=$(this);
+        var oL=obj.parent().find('#left');
+        var oR=obj.parent().find('#right');
+        var R=5;
+        var C=4;
+        var bOne=false;
+        var oBtnbox=obj.parent().find('.btnbox');
+        var aBtn=oBtnbox.children();
+        function rnd(n,m){
+            return parseInt(Math.random()*(m-n))+n;
+        }
+        var iNow=0;
+
+        //left
+        oL.click(function(){
+            console.log(bOne);
+            if(bOne) return;
+            bOne=true;
+            if(iNow==0){
+                iNow=7;
+            }
+
+            for(var r=0; r<R; r++) {
+                for (var c = 0; c < C; c++) {
+                    var oSpan=$('<span><em class="front"></em><em class="back"></em></span>');
+
+                    oSpan.css({
+                        width: obj.width() / C + 'px',
+                        height: obj.height() / R + 'px'
+                    });
+                    oSpan.css({
+                        backgroundPosition: '-' + c * oSpan.width() + 'px -' + r * oSpan.height() + 'px',
+                        left: c * oSpan.width() + 'px',
+                        top: r * oSpan.height() + 'px',
+                        transform:'perspective(800px) rotateY(0deg)'
+                    });
+                    oSpan.appendTo(obj);
+
+                    //两个面
+                    oSpan.children('.front').css({'backgroundPosition':
+                    '-' + c * oSpan.width() + 'px -' + r * oSpan.height() + 'px'
+                    ,backgroundImage:'url(images/'+((iNow)%7)+'.jpg)'
+                });
+                    oSpan.children('.back').css({'backgroundPosition':
+                    '-' + c * oSpan.width() + 'px -' + r * oSpan.height() + 'px'
+                    ,backgroundImage:'url(images/'+((iNow-1)%7)+'.jpg)'
+            });
+
+
+                    oSpan.attr('r', r);
+                    oSpan.attr('c', c);
+
+                }
+            }
+            iNow--;
+            aBtn.removeClass('active');
+            aBtn.eq(iNow%7).addClass('active');
+            obj.css({backgroundImage:'url(images/'+((iNow)%7)+'.jpg)',
+                zIndex:10
+            });
+                var aSpan=obj.children();
+                for(var i=0; i<aSpan.length; i++){
+                aSpan.eq(i).css({
+                    transition:'1s all ease '+200*(Number(aSpan.eq(i).attr('r'))+Number(aSpan.eq(i).attr('c')))+'ms',
+                    transform:'perspective(800px) rotateY(180deg)'
+                });
+
+            }
+
+
+            aSpan.eq(aSpan.length-1).bind('transitionend',function(){
+                for(var i=0; i<aSpan.length; i++){
+                    aSpan.eq(i).css({
+                        transition:'none',
+                        transform:'perspective(800px) rotateY(0deg)'
+                    });
+                }
+
+                obj.css({backgroundImage:'url(images/'+Math.abs((iNow)%7)+'.jpg)'});
+                aSpan.remove();
+                bOne=false;
+            })
+        });
+        //right
+        oR.click(function(){
+
+            bong()
+        });
+        function bong(){
+            if(bOne) return;
+            bOne=true;
+                for(var r=0; r<R; r++) {
+                    for (var c = 0; c < C; c++) {
+                        var oSpan = $('<span></span>');
+                        oSpan.css({
+                            width: obj.width() / C + 'px',
+                            height: obj.height() / R + 'px'
+                        });
+                        oSpan.css({
+                            backgroundImage:'url(images/'+Math.abs((iNow)%7)+'.jpg)',
+                            backgroundPosition: '-' + c * oSpan.width() + 'px -' + r * oSpan.height() + 'px',
+                            left: c * oSpan.width() + 'px',
+                            top: r * oSpan.height() + 'px',
+                            zIndex:10
+                        });
+
+                        oSpan.appendTo(obj);
+                    }
+                }
+                var aSpan=obj.children();
+
+                iNow++;
+                aBtn.removeClass('active');
+                aBtn.eq(iNow%7).addClass('active');
+                obj.css({backgroundImage:'url(images/'+Math.abs((iNow)%7)+'.jpg)',
+                    zIndex:10
+                });
+                for(var i=0; i<aSpan.length; i++){
+                    aSpan.eq(i).css('transition','.6s all ease');
+                    var x=aSpan.eq(i).position().left+aSpan.eq(i).width()/2-obj.width()/2;
+                    var y=aSpan.eq(i).position().top+aSpan.eq(i).height()/2-obj.height()/2;
+                    aSpan.eq(i).css({
+                        transform:'perspective(800px) ' +
+                        'translate('+x+'px,'+y+'px) ' +
+                        'rotateX('+rnd(-180,180)+'deg)' +
+                        ' rotateY('+rnd(-180,180)+'deg) scale(2)',
+                        opacity:0
+                    });
+                }
+
+                aSpan.eq(0).bind("transitionend",function(){
+
+                    aSpan.remove();
+                    bOne=false;
+                });
+
+        }
+        //btn翻页
+        var oPageBox=obj.parent().find('.pagebox');
+        var oPage=oPageBox.find('.page');
+        var oFront=oPageBox.find('.front');
+        var oBack=oPageBox.find('.back');
+        var oPage2=oPageBox.find('.page2');
+
+        aBtn.each(function(index){
+            aBtn.eq(index).click(function(){
+                iNow=index;
+                if(bOne) return;
+                bOne=true;
+                obj.css({zIndex:0});
+                oPageBox.css({display:'block'});
+                if(iNow==0){
+                    oPageBox.css({backgroundImage:'url(images/'+6+'.jpg)'});
+                    oFront.css({backgroundImage:'url(images/'+6+'.jpg)'});
+                    oBack.css({backgroundImage:'url(images/'+0+'.jpg)'});
+                    oPage2.css({backgroundImage:'url(images/'+0+'.jpg)'});
+                }
+                else{
+                    oPageBox.css({backgroundImage:'url(images/'+Math.abs(iNow-1)%7+'.jpg)'});
+                    oFront.css({backgroundImage:'url(images/'+Math.abs(iNow-1)%7+'.jpg)'});
+                    oBack.css({backgroundImage:'url(images/'+(iNow)%7+'.jpg)'});
+                    oPage2.css({backgroundImage:'url(images/'+(iNow)%7+'.jpg)'});
+                }
+                aBtn.removeClass('active');
+                aBtn.eq(iNow%7).addClass('active');
+                oPage.css({
+                    transition: '1s all ease',
+                    transform:'perspective(800px) rotateY(-180deg)'
+                });
+                oPage.bind('transitionend',function(){
+
+                    oPage.css({
+                        transition: 'none',
+                        transform:'perspective(800px) rotateY(0)'
+                    });
+                    //换图
+                    oPageBox.css({backgroundImage:'url(images/'+iNow%7+'.jpg)'});
+                    oFront.css({backgroundImage:'url(images/'+iNow%7+'.jpg)'});
+                    oBack.css({backgroundImage:'url(images/'+(iNow+1)%7+'.jpg)'});
+                    oPage2.css({backgroundImage:'url(images/'+(iNow+1)%7+'.jpg)'});
+                    bOne=false;
+                });
+            });
+
+
+        });
+        //自动播放 看不到停止动作
+        var timer=null;
+        var bReady=false;
+        $(window).scroll(function(){
+            if(obj.offset().top+obj.height()<$(window).scrollTop()){
+                clearInterval(timer);
+                bReady=false;
+            }
+            else{
+                clearInterval(timer);
+                if(bReady) return;
+                bReady=true;
+                 timer=setInterval(function(){
+                    bong();
+                },4000);
+            }
+        });
+        //移入 移
+        obj.parent().hover(function(){
+            clearInterval(timer);
+        },function(){
+            timer=setInterval(function(){
+                bong();
+            },4000);
+        });
+    });
+    };
+
+//延迟加载
+$.fn.picLoad=function(){
+    this.each(function(){
+        var obj=$(this);
+        show();
+
+        $(window).scroll(show).resize(show);
+        function show(){
+            var scrollTop=$(document).scrollTop();
+            var clientHeight=$(window).height();
+            var clientBottom=scrollTop+clientHeight;
+                var top=obj.offset().top;
+                if(clientBottom+20>top){
+                    var _src=obj.attr('_src');
+                    obj.attr('src', _src);
+                }
+        }
+    })
+};
+//拖拽+碰撞运动
+jQuery.pMove=function(obj,iSpeedX,iSpeedY){
+        var timer=null;
+         iSpeedX=iSpeedX||0;
+         iSpeedY=iSpeedY||0;
+        clearInterval(timer);
+        timer=setInterval(function(){
+            iSpeedY+=3;
+            var l=obj.offset().left+iSpeedX;
+            var t=obj.offset().top+iSpeedY;
+
+            if(t>$(window).height()+$(document).scrollTop()-obj.height()){
+                t=$(window).height()+$(document).scrollTop()-obj.height();
+                iSpeedY*=-0.8;
+                iSpeedX*=0.8;
+            }
+            if(l>=$(window).width()-obj.width()){
+                l=$(window).width()-obj.width();
+                iSpeedX*=-0.8;
+                iSpeedY*=0.8;
+            }
+            if(t<=0){
+                t=0;
+                iSpeedY*=-0.8;
+                iSpeedX*=0.8;
+            }
+            if(l<=0){
+                l=0;
+                iSpeedX*=-0.8;
+                iSpeedY*=0.8;
+            }
+
+            obj.css('left',l+'px');
+            obj.css('top',t+'px');
+
+            if(Math.abs(iSpeedX)<1)iSpeedX=0;
+            if(Math.abs(iSpeedY)<1)iSpeedY=0;
+
+            if(iSpeedX==0 && iSpeedY==0 && t==($(window).height()+$(document).scrollTop()-obj.height())){
+                clearInterval(timer);
+                console.log(obj.offset().left/$(window).width()+'%');
+                obj.css({position:'fixed',top:$(window).height()-obj.height()+'px',left:(obj.offset().left/$(window).width())*100+'%'})
+
+            }
+        },30);
+
+};
+$.fn.dragHit=function(){
+    this.each(function(){
+        var obj=$(this);
+        var iSpeedY=0;
+        var iSpeedX=0;
+        var lastX=0;
+        var lastY=0;
+        var timer=null;
+        //拖拽
+        obj.mousedown(function (ev){
+            obj.css({position:'absolute',top:obj.offset().top+'px',left:(obj.offset().left)+'px'});
+            var disX=ev.clientX-obj.offset().left;
+            var disY=ev.clientY-obj.offset().top;
+            clearInterval(timer);
+            $(document).mousemove(move);
+            $(document).mouseup(up);
+
+            function move(ev)
+            {
+                var left=ev.clientX-disX;
+                var top=ev.clientY-disY;
+                console.log(left);
+                obj.css({
+                    left:left+'px',
+                    top:top+'px'
+                });
+                iSpeedX=ev.clientX-lastX;
+                iSpeedY=ev.clientY-lastY;
+
+                lastX=ev.clientX;
+                lastY=ev.clientY;
+            }
+
+            function up()
+            {
+                $(document).unbind('mousemove', move);
+                $(document).unbind('mouseup', up);
+
+                jQuery.pMove(obj,iSpeedX,iSpeedY);
+
+                obj.releaseCapture && obj.releaseCapture();
+            }
+
+            obj.setCapture && obj.setCapture();
+            return false;
+        });
+    })
+};
+//回到顶部
+$.fn.goTop=function(target,time){
+    var bFlag=false;
+    var timer=null;
+    this.each(function(){
+
+        var obj=$(this);
+        obj.click(function(){
+            if(bFlag){
+                return;
+            }
+            bFlag=true;
+            var start=$(document).scrollTop();
+
+            var dis=target-start;
+            var n=0;
+            var count=Math.floor(time/30);
+            clearInterval(timer);
+             timer=setInterval(function(){
+                n++;
+                var cur=start+dis*n/count;
+                $(document).scrollTop(cur);
+                if(n==count)
+                {
+                    clearInterval(timer);
+                    bFlag=false;
+
+
+                }
+
+            },30)
+        })
+    })
+};
+//加载
+$(function(){
+    window.location.hash='';
+    $(document).scrollHeight=0;
+    //延迟加载
+    var aImg=$('img');
+    aImg.picLoad();
+    //头部时钟
+    (function($,window,document,undefined){
+        var oDiv=$('.box');
+        var oH=$('.hour');
+        var oM=$('.min');
+        var oS=$('.sec');
+
+        function tick(){
+            var oDate=new Date();
+            var h=oDate.getHours();
+            var m=oDate.getMinutes();
+            var s=oDate.getSeconds();
+            oH.css({'transform':'rotate('+(h*30+m/60*30)+'deg)'});
+            oM.css({'transform':'rotate('+(6*m+s/60*6)+'deg)'});
+            oS.css({'transform':'rotate('+6*s+'deg)'});
+        }
+        tick();
+        setInterval(tick,1000);
+    })(jQuery,window,document);
+    //头部弹性菜单
+    (function($){
+        var oUl=$('#navlist');
+        var oMove=$('.move');
+        var aLi=oUl.children();
+        var iNow=0;
+        for(var i=0;i<aLi.length-1;i++){
+            aLi.eq(i).attr('index',i);
+            aLi.eq(i).hover(function(){
+                oMove.emove($(this).position().left);
+            },function(){
+                oMove.emove(iNow*aLi.eq(0).innerWidth());
+            });
+            aLi.eq(i).click(function(){
+                iNow=$(this).attr('index');
+            });
+        }
+    })(jQuery);
+    //home轮播图
+    (function($){
+        var oBox=$('#banbox');
+        oBox.play();
+    })(jQuery);
+    //回到顶部 +拖拽碰撞
+    (function($){
+        var stop=null;
+        var oTop=$('#gotop');
+        var oBack=oTop.find('span');
+        stop=setTimeout(function(){
+            oTop.stop().animate({
+                opacity:1
+            },300);
+            jQuery.pMove(oTop);
+        },1500);
+        oTop.dragHit();
+        $(window).scroll(function(){
+            if ($(document).scrollTop() != 0) {
+                oTop.stop().animate({
+                    opacity: 1
+                }, 150);
+
+                oTop.hover(function(){
+                    oBack.show();
+                    oBack.goTop(0,100);
+                },function(){
+                    oBack.hide();
+                });
+            } else {
+                oTop.stop().animate({
+                    opacity:0
+                },0);
+            }
+
+        })
+    })(jQuery);
+    //导航滚动
+    (function($){
+        var oL=$('#navlist');
+        var oTop=$('#gotop');
+        var aLink=oL.children();
+        var oHome=$('#home');
+        var oAbout=$('#about');
+        var oPro=$('#production');
+        var oCon=$('#connect');
+        aLink.eq(0).goTop(0,1000,oTop);
+        aLink.eq(1).goTop(600,1000,oTop);
+        aLink.eq(2).goTop(0,1000,oTop);
+        aLink.eq(3).goTop(0,1000,oTop);
+    })(jQuery);
+    //表单验证
+    //文本框失去焦点后
+    $('form :input').blur(function(){
+        var $parent = $(this).parent();
+        $parent.find(".formtips").remove();
+        //验证用户名
+        if( $(this).is('#username') ){
+            var errorMsg = '请输入至少6位的用户名.';
+            if( this.value=="" || this.value.length < 6 ){
+
+                //.append('<span class="formtips onError">'+errorMsg+'</span>');
+            }
+            else if(this.value!="" &&!/^([\u4e00-\u9fa5]{2,10})|[A-Za-z]+$/.test(this.value)){
+
+
+            }
+            else{
+                var okMsg = '输入正确.';
+                $parent.append('<span class="formtips onSuccess">'+okMsg+'</span>');
+            }
+        }
+
+        //验证邮件
+        if( $(this).is('#email') ){
+            if( this.value=="" || ( this.value!="" && !/^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/.test(this.value) ) ){
+                var errorMsg = '请输入正确的E-Mail地址.';
+                $parent.append('<span class="formtips onError">'+errorMsg+'</span>');
+            }else{
+                var okMsg = '输入正确.';
+                $parent.append('<span class="formtips onSuccess">'+okMsg+'</span>');
+            }
+        }
+    }).keyup(function(){
+        $(this).triggerHandler("blur");
+    }).focus(function(){
+        $(this).triggerHandler("blur");
+    });//end blur
+    //提交，最终验证。
+    $('#send').click(function(){
+        $("form :input.required").trigger('blur');
+        var numError = $('form .onError').length;
+        if(numError){
+            return false;
+        }
+        alert("注册成功,密码已发到你的邮箱,请查收.");
+    });
+
+    //重置
+    $('#res').click(function(){
+        $(".formtips").remove();
+    });
+});

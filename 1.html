@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        *{padding:0;margin:0;text-align:center;}
+        div {
+        position: relative;
+            width:300px;
+            height:300px;
+            border:5px solid #047;
+            margin:0 auto;
+            overflow: hidden;
+    }
+
+    ul {
+        top:0;left:0;
+        position: absolute;
+        width:1500px;height:300px;
+        list-style:none;
+
+    }
+
+    li {
+        height:300px;width:300px;
+        background:red;
+        font-size:100px;
+        float:left;
+    }
+        input{height:40px;width:40px;}
+    </style>
+    <script src="move.js"></script>
+    <script>
+        //$.fn.extend({});
+        window.onload=function(){
+
+            var oBox=document.getElementById('box');
+            var oUl=document.getElementById('list');
+            var oLi=document.createElement('li');
+            oLi.innerHTML=oUl.children[0].innerHTML;
+            oUl.appendChild(oLi);
+            var aLi=oUl.children;
+            var w=oUl.children[0].offsetWidth;
+            oUl.style.width=aLi.length*w+'px';
+
+            var left=document.getElementById('left');
+            var right=document.getElementById('right');
+            var n=0;
+            var on=false;
+            left.onclick=function(){
+                if(on) return;
+                if(n==0){
+                    n=4;
+                    oUl.style.left=-4*w+'px';
+                }
+                n--;
+
+                on=true;
+                left.value=(n%4+1)+'/4';
+
+                move(oUl,{left:-n*w},{
+                    complete:function(){
+                        on=false;
+//                        if(n==0){
+//                            n=4;
+//                            oUl.style.left=-4*w+'px';
+//                        }
+
+                    }
+                })
+
+            };
+
+            right.onclick=function(){
+                if(on) return;
+                if(n==4){
+                    oUl.style.left=0;
+                    n=0;
+                }
+                n++;
+                on=true;
+                left.value=(n%4+1)+'/4';
+                //oUl.style.left=-n*w+'px';
+
+                move(oUl,{left:-n*w},{
+                    complete:function(){
+                        on=false;
+                        console.log(n);
+//                        if(n==4){
+//                            oUl.style.left=0;
+//                            n=0;
+//
+//                        }
+                    }
+                })
+            };
+        };
+    </script>
+</head>
+<body>
+<div id="box">
+
+    <ul id="list">
+
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+    </ul>
+</div>
+<input type="button" id="left" value="left">
+<input type="button" id="right" value="right">
+</body>
+</html>
